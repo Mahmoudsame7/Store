@@ -17,29 +17,29 @@ function ProductsScreen({ navigation }) {
   const queryClient = useQueryClient();
 
   // Check if we have cached data on mount
-  const getCachedProducts = () => {
-    try {
-      const cachedData = ProductsStorage.getString('cachedProducts');
-      if (cachedData) {
-        return JSON.parse(cachedData);
-      }
-    } catch (error) {
-      console.error('Error reading cached products:', error);
-    }
-    return null;
-  };
+  // const getCachedProducts = () => {
+  //   try {
+  //     const cachedData = ProductsStorage.getString('cachedProducts');
+  //     if (cachedData) {
+  //       return JSON.parse(cachedData);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error reading cached products:', error);
+  //   }
+  //   return null;
+  // };
 
-  const getCachedCategories = () => {
-    try {
-      const cachedData = ProductsStorage.getString('cachedCategories');
-      if (cachedData) {
-        return JSON.parse(cachedData);
-      }
-    } catch (error) {
-      console.error('Error reading cached categories:', error);
-    }
-    return null;
-  };
+  // const getCachedCategories = () => {
+  //   try {
+  //     const cachedData = ProductsStorage.getString('cachedCategories');
+  //     if (cachedData) {
+  //       return JSON.parse(cachedData);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error reading cached categories:', error);
+  //   }
+  //   return null;
+  // };
 
   const {
     data,
@@ -106,11 +106,11 @@ function ProductsScreen({ navigation }) {
     if (isSuccess && data?.pages) {
       try {
         const cachedData = JSON.stringify(data.pages);
-        AsyncStorage.setItem('cachedProducts', cachedData);
+        // AsyncStorage.setItem('cachedProducts', cachedData);
 
         // ProductsStorage.set('cachedProducts', cachedData);
       } catch (error) {
-        console.error('Error caching products:', error);
+        console.error('Error caching products:', error); 
       }
     }else if(isError){
        Toast.show({
@@ -322,7 +322,7 @@ function ProductsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Theme.backColor,
   },
   titleContainer: {
     flexDirection: 'row',

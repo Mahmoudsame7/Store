@@ -5,7 +5,7 @@ import LoadingScreen from '../Screens/LoadingScreen';
 import CategoryScreen from '../Screens/Profile/ProfileScreen';
 import UserInactivity from 'react-native-user-inactivity';
 import BackgroundTimer from 'react-native-background-timer';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import ReactNativeBiometrics from "react-native-biometrics";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,6 +14,7 @@ import { Eye, EyeSlash } from 'iconsax-react-nativejs';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CustomTabBar from './CustomTabBar';
 import ProfileScreen from '../Screens/Profile/ProfileScreen';
+import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -115,6 +116,21 @@ function PostNavigator() {
         },
     };
 
+    useEffect(()=>{
+        const unsubscribe = NetInfo.addEventListener(state => {
+             if(state.isConnected == false){
+                Toast.show({
+                                type: 'failure',
+                                text1: 'No network connection',
+                                position: 'bottom',
+                                visibilityTime: 3000,
+                                autoHide: true,
+                            })
+             }
+        });
+
+            unsubscribe();
+    },[])
     return (
         <UserInactivity
             timeForInactivity={10000}
@@ -136,7 +152,6 @@ function PostNavigator() {
                     }}
                 >
                     {showPass ? (
-
                         <View
                             style={{
                                 backgroundColor: 'white',

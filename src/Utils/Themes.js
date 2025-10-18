@@ -1,7 +1,10 @@
 const LightTheme = {
+    backColor: 'white',
     MainColor: '#007AFF',
-    CardColor: '#fff',
+    infoBox: '#caddf1ff',
+    CardColor: '#f3f3f3ff',
     ChipColor: '#e9ecef',
+
 
     headerStyle: {
         fontSize: 22, 
@@ -21,9 +24,11 @@ const LightTheme = {
 }
 
 const DarkTheme = {
-    MainColor: '#d6953fff',
-    CardColor: '#bb8585ff',
-    ChipColor: '#715421ff',
+    backColor: 'black',
+    MainColor: '#ffffffff',
+    CardColor: '#e9e9e9ff',
+    ChipColor: '#898989ff',
+    infoBox: '#989898ff',
     
      headerStyle: {
         fontSize: 22, 

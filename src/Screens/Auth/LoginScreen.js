@@ -18,17 +18,17 @@ function LoginScreen({ navigation }) {
     const [password, setPassword] = useState('');
     const [showPass, setShowPass] = useState(false);
 
-    const [authenticated,setAuthenticated] = useState(false);
+    const [authenticated, setAuthenticated] = useState(false);
 
 
     const dispatch = useDispatch();
 
-    const {isSuccess,isLoadError,userError,data,isUserPending} = useQuery({
-            queryKey: ['GetUserByToken'],
-            queryFn: () => LoadUser(),
-            enabled:   authenticated, // only run if token exists
-        })
-        
+    const { isSuccess, isLoadError, userError, data, isUserPending } = useQuery({
+        queryKey: ['GetUserByToken'],
+        queryFn: () => LoadUser(),
+        enabled: authenticated, // only run if token exists
+    })
+
     const { mutate, isPending, isIdle, isError } = useMutation({
         mutationFn: (UserData) => {
             return Login(UserData)
@@ -63,12 +63,12 @@ function LoginScreen({ navigation }) {
         Globals.token = '';
         Globals.isAdmin = false;
     }
-    useEffect(()=>{
+    useEffect(() => {
 
-        if(authenticated && data){
+        if (authenticated && data) {
             dispatch(setUser(data))
             navigation.navigate('PostLogin')
-        }else if(authenticated && isLoadError){
+        } else if (authenticated && isLoadError) {
             Toast.show({
                 type: 'failure',
                 text1: userError['message'],
@@ -78,11 +78,11 @@ function LoginScreen({ navigation }) {
             })
             clearStorage()
         }
-    },[authenticated])
+    }, [authenticated])
 
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1,backgroundColor:Theme.backColor }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={{ flex: 1 }}>
@@ -156,12 +156,12 @@ function LoginScreen({ navigation }) {
                                         }
                                     }
                                     }>
-                                    <Text style={[Theme.textStyle,{ color: 'white' }]}>Login</Text>
+                                    <Text style={[Theme.textStyle, { color: 'white' }]}>Login</Text>
 
                                 </TouchableOpacity>
                             }
                             {
-                               ( isPending || isUserPending ) && <ActivityIndicator size={40} style={{ marginTop: 20 }} color={Theme.MainColor} />
+                                (isPending || isUserPending) && <ActivityIndicator size={40} style={{ marginTop: 20 }} color={Theme.MainColor} />
                             }
 
 

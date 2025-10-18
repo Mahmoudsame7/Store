@@ -50,7 +50,7 @@ const ProfileScreen = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Theme.backColor,
     alignItems: "center",
     padding: 20,
   },
@@ -69,10 +69,11 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     width: "100%",
-    backgroundColor: "#f4f4f4",
+    backgroundColor: Theme.infoBox,
     borderRadius: 12,
     padding: 15,
     marginVertical: 30,
+    gap:10,
   },
   label: {
    ...Theme.textStyle,
