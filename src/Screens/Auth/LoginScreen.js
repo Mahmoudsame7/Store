@@ -23,7 +23,7 @@ function LoginScreen({ navigation }) {
 
     const dispatch = useDispatch();
 
-    const { isSuccess, isLoadError, userError, data, isUserPending } = useQuery({
+    const  userData  = useQuery({
         queryKey: ['GetUserByToken'],
         queryFn: () => LoadUser(),
         enabled: authenticated, 
@@ -62,20 +62,20 @@ function LoginScreen({ navigation }) {
     }
     useEffect(() => {
 
-        if (authenticated && data) {
-            dispatch(setUser(data))
+        if (authenticated && userData.data) {
+            dispatch(setUser(userData.data))
             navigation.navigate('PostLogin')
-        } else if (authenticated && isLoadError) {
+        } else if (authenticated && userData.isError) {
             Toast.show({
                 type: 'failure',
-                text1: userError['message'],
+                text1: userData.error['message'],
                 position: 'bottom',
                 visibilityTime: 3000,
                 autoHide: true,
             })
             clearStorage()
         }
-    }, [authenticated])
+    }, [authenticated,userData.data,userData.isError])
 
 
     return (
@@ -161,7 +161,7 @@ function LoginScreen({ navigation }) {
                                 </TouchableOpacity>
                             }
                             {
-                                (isPending || isUserPending) && <ActivityIndicator size={40} style={{ marginTop: 20 }} color={theme.MainColor} />
+                                (isPending || userData.isPending) && <ActivityIndicator size={40} style={{ marginTop: 20 }} color={theme.MainColor} />
                             }
 
 
