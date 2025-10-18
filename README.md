@@ -65,7 +65,7 @@ Password: any text
 
 ## Trade-offs and “if I had more time.”
 
-- Fix installing react-native-mmkv it takes me two days to try installing it on different react native versions and switching between between old and new architecture and browsing issues on library on github but unfortunately it didn't work , I used react-native-async-storage to persist data local.
+- Fix installing react-native-mmkv tried to install it on different react native versions and switching between between old and new architecture and browsing issues on library on github but unfortunately it didn't work , I used react-native-async-storage to persist data local.
 
 - Apply more ui and file architecture enchancements
 
