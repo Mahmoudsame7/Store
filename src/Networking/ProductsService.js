@@ -12,6 +12,8 @@ export const FetchProducts = async (page=1) => {
     token: Globals.token
   });
 
+  
+
   if(response?.message){
     throw new Error(response.message)
   }
@@ -31,6 +33,7 @@ export const FetchCategories = async () => {
     method: "GET",
     token: Globals.token
   });
+
 
   if(response?.message){
     throw new Error(response.message)

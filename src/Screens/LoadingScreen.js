@@ -1,17 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TextInput, View } from "react-native";
 import { ProductsStorage, storage } from "../LocalStorage/LocalStorage";
 import { LoadUser } from "../Networking/AuthService";
 import ReactNativeBiometrics from "react-native-biometrics";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { clearUser, setUser } from "../Store/userSlice";
 import Globals from "../Utils/Globals";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { Theme } from "../Utils/Themes";
+import { Eye, EyeSlash } from "iconsax-react-nativejs";
+import { setTheme } from "../Store/themeSlice";
+
 
 function LoadingScreen({ navigation }) {
+
+    const { theme } = useSelector((state) => state.theme);
 
     const dispatch = useDispatch()
 
@@ -26,17 +30,16 @@ function LoadingScreen({ navigation }) {
         enabled: isInitialized, // only run if token exists
     })
 
-
-
-
-
-
     useEffect(() => {
         const initApp = async () => {
             try {
-                const values = await AsyncStorage.multiGet(['isAdmin', 'AccessToken']);
+
+                const values = await AsyncStorage.multiGet(['isAdmin', 'AccessToken', 'isDark']);
                 Globals.isAdmin = values[0][1] === 'true';
                 Globals.token = values[1][1] ?? '';
+                let mode = values[2][1] === 'true' ? 'dark' : 'light'
+
+                dispatch(setTheme(mode))
 
                 setIsInitialized(true);
             } catch (error) {
@@ -91,13 +94,12 @@ function LoadingScreen({ navigation }) {
     const handlePasswordLogin = async () => {
         let currentPass = await AsyncStorage.getItem('password')
         if (password === currentPass) {
-            
             setShowPass(false);
             setPassword(null);
             navigation.navigate('PostLogin')
 
         } else {
-            console.log('Wrong password');
+            
         }
     };
 
@@ -115,7 +117,7 @@ function LoadingScreen({ navigation }) {
     }, [isInitialized, isSuccess, isError, data, navigation]);
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center',backgroundColor:Theme.backColor }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.backColor }}>
             {showPass ? (
                 <View
                     style={{
@@ -127,7 +129,7 @@ function LoadingScreen({ navigation }) {
                         gap: 10,
                     }}
                 >
-                    <Text style={Theme.textStyle}>
+                    <Text style={theme.textStyle}>
                         Enter your password
                     </Text>
                     <View style={{
@@ -151,8 +153,8 @@ function LoadingScreen({ navigation }) {
                                 setPassTextShown(!passTextShown)
                             }}
                             style={{ marginHorizontal: 10 }}>
-                            {!passTextShown ? <EyeSlash size={30} color={Theme.MainColor} /> :
-                                <Eye size={30} color={Theme.MainColor} />}
+                            {!passTextShown ? <EyeSlash size={30} color={theme.MainColor} /> :
+                                <Eye size={30} color={theme.MainColor} />}
                         </TouchableOpacity>
 
                     </View>
@@ -161,17 +163,17 @@ function LoadingScreen({ navigation }) {
                         style={{
                             width: '100%',
                             height: 50,
-                            backgroundColor: Theme.MainColor,
+                            backgroundColor: theme.MainColor,
                             justifyContent: 'center',
                             alignItems: 'center',
                             borderRadius: 10,
                         }}
                     >
-                        <Text style={[Theme.textStyle, { color: 'white' }]}>Unlock</Text>
+                        <Text style={[theme.textStyle, { color: 'white' }]}>Unlock</Text>
                     </TouchableOpacity>
                 </View>
             ) :
-                <ActivityIndicator size="large" color="#0000ff" />}
+                <ActivityIndicator size="large" color={theme.MainColor} />}
         </View>
     )
 }

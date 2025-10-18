@@ -4,42 +4,18 @@ import { DeleteProduct, FetchCategories, FetchProductByCategory, FetchProducts }
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductsStorage, storage } from "../../LocalStorage/LocalStorage";
 import Globals from "../../Utils/Globals";
-import { Theme } from "../../Utils/Themes";
+// import { Theme } from "../../Utils/Themes";
 import { Skeleton } from "@rneui/themed";
 import { CloseCircle } from "iconsax-react-nativejs";
 import { Toast } from "toastify-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSelector } from "react-redux";
 
 function ProductsScreen({ navigation }) {
 
+  const { theme } = useSelector((state) => state.theme);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [initialProducts, setInitialProducts] = useState([]);
   const queryClient = useQueryClient();
-
-  // Check if we have cached data on mount
-  // const getCachedProducts = () => {
-  //   try {
-  //     const cachedData = ProductsStorage.getString('cachedProducts');
-  //     if (cachedData) {
-  //       return JSON.parse(cachedData);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error reading cached products:', error);
-  //   }
-  //   return null;
-  // };
-
-  // const getCachedCategories = () => {
-  //   try {
-  //     const cachedData = ProductsStorage.getString('cachedCategories');
-  //     if (cachedData) {
-  //       return JSON.parse(cachedData);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error reading cached categories:', error);
-  //   }
-  //   return null;
-  // };
 
   const {
     data,
@@ -66,16 +42,6 @@ function ProductsScreen({ navigation }) {
     refetchOnMount: true,
     refetchOnReconnect: false,
     enabled: !selectedCategory,
-    // initialData: () => {
-    //   const cached = getCachedProducts();
-    //   if (cached) {
-    //     return {
-    //       pages: cached,
-    //       pageParams: [1]
-    //     };
-    //   }
-    //   return undefined;
-    // },
   });
 
   const categoryInfo = useQuery({
@@ -84,7 +50,6 @@ function ProductsScreen({ navigation }) {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    // initialData: getCachedCategories,
   });
 
   const ProductByCategory = useQuery({
@@ -95,58 +60,47 @@ function ProductsScreen({ navigation }) {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,
-    
+
   });
 
 
 
+  const SetCachedProducts = async () => {
+    try {
+      const cachedData = JSON.stringify(data.pages);
+      await AsyncStorage.setItem('cachedProducts', cachedData);
+    } catch (error) {
+      console.error('Error caching products:', error);
+    }
+  }
 
   // Cache products when data changes
   useEffect(() => {
     if (isSuccess && data?.pages) {
-      try {
-        const cachedData = JSON.stringify(data.pages);
-        // AsyncStorage.setItem('cachedProducts', cachedData);
-
-        // ProductsStorage.set('cachedProducts', cachedData);
-      } catch (error) {
-        console.error('Error caching products:', error); 
-      }
-    }else if(isError){
-       Toast.show({
-                      type: 'failure',
-                      text1: error.message,
-                      position: 'bottom',
-                      visibilityTime: 3000,
-                      autoHide: true,
-                  })
-    }else if(categoryInfo.isError){
+      // SetCachedProducts()
+    } else if (isError) {
       Toast.show({
-                      type: 'failure',
-                      text1: categoryInfo.error.message,
-                      position: 'bottom',
-                      visibilityTime: 3000,
-                      autoHide: true,
-                  })
+        type: 'failure',
+        text1: error.message,
+        position: 'bottom',
+        visibilityTime: 3000,
+        autoHide: true,
+      })
     }
-  }, [data, isSuccess,isError,categoryInfo.isError]);
-
-  // Cache categories when data changes
-  // useEffect(() => {
-  //   if (categoryInfo.isSuccess && categoryInfo.data) {
-  //     try {
-  //       const cachedData = JSON.stringify(categoryInfo.data);
-  //       ProductsStorage.set('cachedCategories', cachedData);
-  //     } catch (error) {
-  //       console.error('Error caching categories:', error);
-  //     }
-  //   }
-  // }, [categoryInfo.data, categoryInfo.isSuccess]);
-
-
+    
+    if (categoryInfo.isError) {
+      Toast.show({
+        type: 'failure',
+        text1: categoryInfo.error.message,
+        position: 'bottom',
+        visibilityTime: 3000,
+        autoHide: true,
+      })
+    }
+  }, [data, isSuccess, isError, categoryInfo.isError]);
 
   const products = useMemo(() => {
-  return data?.pages.flatMap(page => page.products) ?? [];
+    return data?.pages.flatMap(page => page.products) ?? [];
   }, [data]);
 
   const renderChip = ({ item }) => {
@@ -154,7 +108,10 @@ function ProductsScreen({ navigation }) {
 
     return (
       <TouchableOpacity
-        style={[styles.chip, isSelected && styles.selectedChip]}
+        style={[styles.chip, isSelected && {
+          backgroundColor: theme.MainColor,
+          borderColor: theme.MainColor,
+        }]}
         onPress={() => {
           if (selectedCategory !== item) {
             setSelectedCategory(item)
@@ -163,48 +120,46 @@ function ProductsScreen({ navigation }) {
           }
         }}
       >
-        <Text style={[styles.chipText, isSelected && styles.selectedText]}>
+        <Text style={[theme.chipTextStyle, isSelected && styles.selectedText]}>
           {item}
         </Text>
       </TouchableOpacity>
     );
   };
 
-  
+
 
   const { mutate } = useMutation({
-  mutationFn: (id) => DeleteProduct(id),
-  onMutate: async (id) => {
-    await queryClient.cancelQueries(['products'])
+    mutationFn: (id) => DeleteProduct(id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries(['products'])
 
-    const previousProducts = queryClient.getQueryData(['products'])
+      const previousProducts = queryClient.getQueryData(['products'])
 
-    queryClient.setQueryData(['products'], (oldData) => {
-      if (!oldData) return oldData;
-      return {
-        ...oldData,
-        pages: oldData.pages.map((page) => ({
-          ...page,
-          products: page.products.filter((p) => p.id !== id),
-        })),
-      };
-    });
+      queryClient.setQueryData(['products'], (oldData) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) => ({
+            ...page,
+            products: page.products.filter((p) => p.id !== id),
+          })),
+        };
+      });
 
-    return {previousProducts}
-  },
- 
-  onError: (err, id, onMutateResult) => {
-    queryClient.setQueryData(['products'], onMutateResult.previousProducts);
-  },
-  // onSettled: () =>{
-  //   queryClient.invalidateQueries({ queryKey: ['products'] })
-  // }
-  
-  
-});
+      return { previousProducts }
+    },
+
+    onError: (err, id, onMutateResult) => {
+      queryClient.setQueryData(['products'], onMutateResult.previousProducts);
+    },
+
+
+
+  });
 
   const renderProduct = ({ item }) => (
-    <TouchableOpacity style={styles.productCard}>
+    <TouchableOpacity style={[styles.productCard, { backgroundColor: theme.CardColor }]}>
       <Image
         source={{ uri: item.thumbnail }}
         style={styles.productImage}
@@ -223,18 +178,18 @@ function ProductsScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.backColor }]}>
 
-    
+
       <View style={styles.titleContainer}>
-        <Text style={Theme.headerStyle}>Products</Text>
+        <Text style={theme.headerStyle}>Products</Text>
       </View>
 
-     
 
-      
 
-     
+
+
+
 
       <View style={styles.content}>
         {/* {categoryInfo.isError && (
@@ -245,7 +200,7 @@ function ProductsScreen({ navigation }) {
 
         {categoryInfo.data && (
           <View style={styles.categoriesSection}>
-            <Text style={styles.sectionTitle}>Categories</Text>
+            <Text style={[theme.headerStyle, styles.sectionTitle]}>Categories</Text>
             <FlatList
               data={categoryInfo.data}
               horizontal
@@ -258,20 +213,20 @@ function ProductsScreen({ navigation }) {
         )}
 
         {(isLoading || ProductByCategory.isLoading) && (
-        <View style={{flex:1,marginTop:10,gap:10,alignItems:'center'}}>
-          <Skeleton width="90%" height={140} animation="wave" style={{borderRadius:12}}/>
-          <Skeleton width="90%" height={140} animation="wave" style={{borderRadius:12}}/>
-          <Skeleton width="90%" height={140} animation="wave" style={{borderRadius:12}}/>
-          <Skeleton width="90%" height={140} animation="wave" style={{borderRadius:12}}/>
-          <Skeleton width="90%" height={140} animation="wave" style={{borderRadius:12}}/>
-        </View>
+          <View style={{ flex: 1, marginTop: 10, gap: 10, alignItems: 'center' }}>
+            <Skeleton width="90%" height={140} animation="wave" style={{ borderRadius: 12 }} />
+            <Skeleton width="90%" height={140} animation="wave" style={{ borderRadius: 12 }} />
+            <Skeleton width="90%" height={140} animation="wave" style={{ borderRadius: 12 }} />
+            <Skeleton width="90%" height={140} animation="wave" style={{ borderRadius: 12 }} />
+            <Skeleton width="90%" height={140} animation="wave" style={{ borderRadius: 12 }} />
+          </View>
         )}
         {!selectedCategory ? (
           <FlatList
             data={products}
             onRefresh={refetch}
             refreshing={isFetching && !isFetchingNextPage}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item?.id.toString()}
             renderItem={renderProduct}
             contentContainerStyle={styles.productsList}
             onEndReached={() => {
@@ -283,32 +238,32 @@ function ProductsScreen({ navigation }) {
             ListFooterComponent={
               isFetchingNextPage ? (
                 <View style={styles.footerLoader}>
-                  <ActivityIndicator size="small" color="#007AFF" />
+                  <ActivityIndicator size="small" color={theme.MainColor} />
                 </View>
               ) : null
             }
             ListEmptyComponent={
               !isLoading ? (
                 <View style={styles.emptyContainer}>
-                  <CloseCircle size={100} color={Theme.MainColor}/>
-                  <Text style={[styles.emptyText,{width:'100%',textAlign:'center'}]}>No products found</Text>
+                  <CloseCircle size={100} color={theme.MainColor} />
+                  <Text style={[styles.emptyText, { width: '100%', textAlign: 'center',color:theme.MainColor }]}>No products found</Text>
                 </View>
               ) : null
             }
           />
-         
-          
+
+
         ) : (
           <FlatList
             data={ProductByCategory.data?.products}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item?.id.toString()}
             renderItem={renderProduct}
             contentContainerStyle={styles.productsList}
             ListEmptyComponent={
               !ProductByCategory.isLoading ? (
-                <View style={styles.emptyContainer}>
-                  <CloseCircle size={100} color={Theme.MainColor}/>
-                  <Text style={[styles.emptyText,{width:'100%',textAlign:'center'}]}>No products in this category</Text>
+                <View style={[styles.emptyContainer]}>
+                  <CloseCircle size={100} color={theme.MainColor} />
+                  <Text style={[styles.emptyText, theme.MainColor, { width: '100%', textAlign: 'center',color:theme.MainColor }]}>No products in this category</Text>
                 </View>
               ) : null
             }
@@ -322,7 +277,7 @@ function ProductsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.backColor,
+
   },
   titleContainer: {
     flexDirection: 'row',
@@ -343,7 +298,7 @@ const styles = StyleSheet.create({
     // backgroundColor:'red'
   },
   sectionTitle: {
-    ...Theme.headerStyle,
+
     paddingHorizontal: 20,
     marginBottom: 12,
   },
@@ -359,13 +314,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dee2e6',
   },
-  selectedChip: {
-    backgroundColor: Theme.MainColor,
-    borderColor: Theme.MainColor,
-  },
-  chipText: {
-    ...Theme.chipTextStyle
-  },
+  // selectedChip: {
+  //   backgroundColor: theme.MainColor,
+  //   borderColor: theme.MainColor,
+  // },
+  // chipText: {
+  //   ...theme.chipTextStyle
+  // },
   selectedText: {
     color: '#fff',
     fontWeight: '600',
@@ -375,7 +330,6 @@ const styles = StyleSheet.create({
   },
   productCard: {
     flexDirection: 'row',
-    backgroundColor: Theme.CardColor,
     borderRadius: 12,
     marginBottom: 12,
     padding: 12,
@@ -412,16 +366,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6c757d',
   },
-  
+
   loadingText: {
     marginTop: 10,
     fontSize: 16,
     color: '#6c757d',
   },
   errorContainer: {
-    flex:1,
-    paddingVertical:80,
-    gap:10,
+    flex: 1,
+    paddingVertical: 80,
+    gap: 10,
     alignItems: 'center',
   },
   errorText: {
@@ -435,12 +389,11 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     paddingVertical: 80,
-    gap:10,
+    gap: 10,
     alignItems: 'center',
   },
   emptyText: {
     fontSize: 20,
-    color: Theme.MainColor,
   },
 });
 

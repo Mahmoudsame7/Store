@@ -9,12 +9,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import ReactNativeBiometrics from "react-native-biometrics";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Theme } from '../Utils/Themes';
 import { Eye, EyeSlash } from 'iconsax-react-nativejs';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CustomTabBar from './CustomTabBar';
 import ProfileScreen from '../Screens/Profile/ProfileScreen';
 import NetInfo, { useNetInfo } from "@react-native-community/netinfo";
+import { useSelector } from 'react-redux';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -25,16 +25,6 @@ function AppNavigator() {
             <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
             <Stack.Screen name="LoginScreen" component={LoginScreen} />
             <Stack.Screen name="PostLogin" component={PostNavigator} />
-            {/* <Stack.Screen name="ProductsScreen" component={ProductsScreen} 
-            options={{
-                headerShown: true,
-                title: 'Products',
-            }} />
-            <Stack.Screen name="CategoryScreen" component={CategoryScreen} 
-            options={{
-                headerShown: true,
-                title: 'Categories',
-            }} /> */}
         </Stack.Navigator>
     )
 }
@@ -43,6 +33,7 @@ function AppNavigator() {
 function PostNavigator() {
 
 
+    const { theme } = useSelector((state) => state.theme);
     const [lock, setLock] = useState(false);
     const [password, setPassword] = useState(null)
     const [showPass, setShowPass] = useState(false);
@@ -96,7 +87,7 @@ function PostNavigator() {
             setShowPass(false);
             setPassword(null);
         } else {
-            console.log('Wrong password');
+            
         }
     };
 
@@ -116,21 +107,21 @@ function PostNavigator() {
         },
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
-             if(state.isConnected == false){
+            if (state.isConnected == false) {
                 Toast.show({
-                                type: 'failure',
-                                text1: 'No network connection',
-                                position: 'bottom',
-                                visibilityTime: 3000,
-                                autoHide: true,
-                            })
-             }
+                    type: 'failure',
+                    text1: 'No network connection',
+                    position: 'bottom',
+                    visibilityTime: 3000,
+                    autoHide: true,
+                })
+            }
         });
 
-            unsubscribe();
-    },[])
+        unsubscribe();
+    }, [])
     return (
         <UserInactivity
             timeForInactivity={10000}
@@ -146,7 +137,7 @@ function PostNavigator() {
                         zIndex: 1000,
                         width: '100%',
                         height: '100%',
-                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        backgroundColor: theme.backColor,
                         justifyContent: 'center',
                         alignItems: 'center',
                     }}
@@ -154,7 +145,7 @@ function PostNavigator() {
                     {showPass ? (
                         <View
                             style={{
-                                backgroundColor: 'white',
+                                backgroundColor: theme.CardColor,
                                 padding: 20,
                                 width: '85%',
                                 borderRadius: 15,
@@ -162,7 +153,7 @@ function PostNavigator() {
                                 gap: 10,
                             }}
                         >
-                            <Text style={Theme.textStyle}>
+                            <Text style={theme.textStyle}>
                                 Enter your password
                             </Text>
                             <View style={{
@@ -178,6 +169,7 @@ function PostNavigator() {
                                     onChangeText={(val) => {
                                         setPassword(val)
                                     }}
+
                                     secureTextEntry={passTextShown == false}
                                     placeholder="********"
                                 />
@@ -186,8 +178,8 @@ function PostNavigator() {
                                         setPassTextShown(!passTextShown)
                                     }}
                                     style={{ marginHorizontal: 10 }}>
-                                    {!passTextShown ? <EyeSlash size={30} color={Theme.MainColor} /> :
-                                        <Eye size={30} color={Theme.MainColor} />}
+                                    {!passTextShown ? <EyeSlash size={30} color={theme.MainColor} /> :
+                                        <Eye size={30} color={theme.MainColor} />}
                                 </TouchableOpacity>
 
                             </View>
@@ -196,13 +188,13 @@ function PostNavigator() {
                                 style={{
                                     width: '100%',
                                     height: 50,
-                                    backgroundColor: Theme.MainColor,
+                                    backgroundColor: theme.MainColor,
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                     borderRadius: 10,
                                 }}
                             >
-                                <Text style={[Theme.textStyle, { color: 'white' }]}>Unlock</Text>
+                                <Text style={[theme.textStyle, { color: 'white' }]}>Unlock</Text>
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -213,27 +205,21 @@ function PostNavigator() {
                     )}
                 </View>
             )}
-            {/* <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="ProductsScreen" component={ProductsScreen}
-                />
-                <Stack.Screen name="CategoryScreen" component={CategoryScreen}
-                />
-            </Stack.Navigator> */}
             <Tab.Navigator
-      screenOptions={{ headerShown: false }}
-      tabBar={(props) => <CustomTabBar {...props} />}
-    >
-      <Tab.Screen name="ProductsScreen" component={ProductsScreen} 
-      options={{
-        title: 'Products'
-      }} 
-      />
-      <Tab.Screen name="ProfileScreen" component={ProfileScreen} 
-      options={{
-        title: 'Profile'
-      }} 
-      />
-    </Tab.Navigator>
+                screenOptions={{ headerShown: false }}
+                tabBar={(props) => <CustomTabBar {...props} />}
+            >
+                <Tab.Screen name="ProductsScreen" component={ProductsScreen}
+                    options={{
+                        title: 'Products'
+                    }}
+                />
+                <Tab.Screen name="ProfileScreen" component={ProfileScreen}
+                    options={{
+                        title: 'Profile'
+                    }}
+                />
+            </Tab.Navigator>
         </UserInactivity>
     )
 }
